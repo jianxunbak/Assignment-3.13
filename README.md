@@ -1,4 +1,4 @@
-# Insert Lesson Title
+# Spring Boot: Java Persistent API
 
 ## Dependencies
 
@@ -10,10 +10,16 @@ Refer to the following markdown file for the respective sections of the class:
 ## Lesson Objectives
 
 Learners will understand:
-- Insert the knowledge to be acquired
+- What is JPA and why use it.
+- What are the various implementations of JPA.
+- What is ORM.
+- What is hibernate.
+- How to query database using and which to choose between JpaRepository default methods, CriteriaBuilder and JPQL. 
 
 Learners will be able to:
-- Insert the skillset to be acquired
+- Define an entity and perform CRUD operations using methods provided by `@JpaRepository`.
+- Use CriteriaBuilder to build dynamic query based on given parameters (the ability to skip certain criteria if value is null).
+- Query the database with JPQL using `@Query`. 
 
 
 ## Lesson Plan

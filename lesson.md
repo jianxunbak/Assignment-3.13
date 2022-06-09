@@ -1,14 +1,12 @@
 ## Brief
 
-### How to use the lesson sample code
+### Preparation
 
-There are two folders prepared for the lesson. 
-- [Instructor's folder](./lesson-sample-code/instructor-demo-code)
-- [Learners' folder](./lesson-sample-code/learners-practice-code)
+Write about any preparations needed for the lesson, such as tools, installations, prior-knowledge, etcs.
 
-Instructor to use the code provided for demonstration during the I DO segment. Learners will use the java file provided in the respective folder for practice during the WE DO segment.
+### Lesson Overview
 
-### Any other announcements to instructors or learners
+Write about how instructors can brief the students at the start of the lesson. It is good to guide students through what is going to be covered and the outcome. Setting expectations.
 
 ---
 

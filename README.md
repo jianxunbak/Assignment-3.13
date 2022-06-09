@@ -10,25 +10,14 @@ Refer to the following markdown file for the respective sections of the class:
 ## Lesson Objectives
 
 Learners will understand:
-- What are databases.
-- How are data stored in relational database like PostgreSQL.
-- The relationships mapping between tables (one to one, one to many, many to many).
-- What is JPA and why use it.
-- What are the various implementations of JPA.
-- What is ORM.
-- What is hibernate.
-- How to query database using and which to choose between JpaRepository default methods, CriteriaBuilder and JPQL. 
+- Basic concepts of a Relational Database like PostgreSQL.
+- What are JPAs and Hibernate.
+- How to query database through JPA APIs.
 
 Learners will be able to:
-- Access the database using psql CLI client to verify data written.
-- Setup database connection using PostgreSQL.
-- Define an entity and perform CRUD operations using methods provided by `@JpaRepository`.
-- Query the database with JPQL using `@Query`. 
-- (Optional - content developer feedback on whether this is achievable) Query database with CriteriaBuilder.
-
-> Provide learners with PostgreSQL installation guide and a set of SQL Script with explanations to setup database for lesson as part of self studies.
-> This lesson will be one of the toughest as learners need to absorb the knowledge of database and setting it up BEFORE the lesson, and grasping JPA within the lesson.
-> Content writer should prepare code base with `@RestController` and `@Service` implemented so that learners will only need to implement the JPA layer.
+- Create entity model with @Entity annotation.
+- Implement @Repository interfaces by extending JpaRepository.
+- Performing basic Create, Read, Update and Delete operations.
 
 ## Lesson Plan
 

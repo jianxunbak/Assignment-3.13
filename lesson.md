@@ -6,7 +6,7 @@
 
 ### Lesson Overview
 
-This lesson is one of the harder lessons because learners have to grasp the database and JPA concept. Both are two separate technologies.
+This lesson is one of the harder lessons because learners have to grasp the database and JPA concept. Both are two separate technologies. Pre-warn learners that this lesson will be on recap during the next coaching session if there are doubts by the end of the lesson.
 
 ---
 ## Self-studies check-in
@@ -47,7 +47,7 @@ D - Storing unstructured data
 
 ---
 
-## Part 1 - Conceptual Understanding on Database (30 mins)
+## Part 1 - Conceptual Understanding on Database
 
 Review the [study material](https://www.youtube.com/watch?v=OqjJjpjDRLc) (7:53) and revise on the self studies check-in questions again.
 
@@ -374,7 +374,7 @@ Run the application with:
 ./mvnw spring-boot:run
 ```
 
-Attempt to call following API Endpoints in this order:
+You should be able to successfully call the following APIs following the order: 1, 2, 3 and 4.
 
 |Order|URL|Verb|Body|Remarks|
 |-----|---|----|----|-------|

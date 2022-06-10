@@ -28,7 +28,7 @@ public class CatalogueController {
     
 	// Updated (produces = MediaType.APPLICATION_JSON_VALUE)
     @RequestMapping(value="/catalogues", method = RequestMethod.GET ,consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public @ResponseBody ResponseEntity<List<Catalogue>> list(@RequestParam String search){
+    public @ResponseBody ResponseEntity<List<Catalogue>> list(@RequestParam(defaultValue = "") String search){
         List<Catalogue> results = repo.findByNameContaining(search);
         System.out.println("Results Size: "+results.size());
         if(results.size() == 0) {
@@ -48,11 +48,9 @@ public class CatalogueController {
     @GetMapping(value = "/catalogues/{id}")
     public ResponseEntity<Optional<Catalogue>> get(@PathVariable int id){
         Optional<Catalogue> result = (Optional<Catalogue>) repo.findById(id);
-        if(result == null) {
-        	return ResponseEntity.notFound().build();
-        }else {
-        	return ResponseEntity.ok(result);
-        }
+        if(result.isPresent()) return ResponseEntity.ok(result);
+        
+        return ResponseEntity.notFound().build();
     }
 
     /*

@@ -13,9 +13,8 @@ In this assignment, you are to produce the following API Endpoints:
 [Cart.java](./src/shoppingcartapi/src/main/java/com/skillsunion/shoppingcartapi/entity/Cart.java) has already been created for you. Note additional annotations `@JoinColumn` and `@OneToOne` creates a relationship between `cart` and `catalogue` table.
 
 Task:
-1. Create `CartController.java` and implement methods that follows the documented API Endpoint above.
-2. Create `CartRepository.java`.
-3. Implement the logic for the respective methods in `CartController.java`.
+1. Create `CartRepository.java`.
+1. Implement the logic for the respective methods in `CartController.java`.
 
 *Hint - This is how you set an item to the cart.*
 

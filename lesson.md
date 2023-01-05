@@ -378,6 +378,6 @@ You should be able to successfully call the following APIs following the order: 
 |-----|---|----|----|-------|
 |1|http://localhost:8080/catalogues|POST|`{"name":"sofa","price":1000}`| Create data|
 |2|http://localhost:8080/catalogues|POST|`{"name":"candy","price":1000}`| Create data|
-|3|http://localhost:8080/catalogues/1|POST|N/A| Read data by ID|
-|4|http://localhost:8080/catalogues?search=of|POST|N/A| Find data where name contains "of"|
+|3|http://localhost:8080/catalogues/1|GET|N/A| Read data by ID|
+|4|http://localhost:8080/catalogues?search=of|GET|N/A| Find data where name contains "of"|
 

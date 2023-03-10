@@ -69,7 +69,7 @@ Step 2: Setup the database
 ```sql
 CREATE DATABASE exampledb;
 CREATE USER exampleuser WITH ENCRYPTED PASSWORD 'password';
-GRANT ALL PRIVILEGES ON DATABASE exampleuser to exampledb;
+GRANT ALL PRIVILEGES ON DATABASE exampledb to exampleuser;
 ```
 ### Database Connections
 

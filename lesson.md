@@ -1,383 +1,591 @@
-## Brief
+This lesson is the 2nd part of JPA, where we switch from H2 to PostgreSQL and make our application more robust with exception handling and validation.
 
-### Preparation
+## Part 1: PostgreSQL
 
-- Check in with learners before lesson to ensure PostgreSQL installation is done.
+PostgreSQL is a relational database management system (RDBMS). It is open source and free. It is also known as Postgres and it is popular for its reliability, robustness, and performance.
 
-### Lesson Overview
+Check if you have PostgreSQL installed:
 
-This lesson is one of the harder lessons because learners have to grasp the database and JPA concept. Both are two separate technologies. Pre-warn learners that this lesson will be on recap during the next coaching session if there are doubts by the end of the lesson.
+```sh
+psql --version
+```
 
----
-## Self-studies check-in
+### Installation on Windows (WSL)
 
-Q1: How are data stored in relational databases?
+First, update your system:
 
-A - Data are stored as JSON.
+```sh
+sudo apt update && sudo apt upgrade
+```
 
-B - Data are stored as Excel Sheet.
+Install PostgreSQL:
 
-C - Data are stored as Tables.
+```sh
+sudo apt install postgresql postgresql-contrib
+```
 
-D - Data are stored as source code.
+Managing the PostgreSQL service:
 
----
+```sh
+sudo service postgresql start
+sudo service postgresql stop
+sudo service postgresql restart
+sudo service postgresql status
+```
 
-Q2: Which of the following is NOT a valid relationship?
+Enter PostgreSQL shell:
 
-A - All to All
+```sh
+psql -U postgres
+```
 
-B - One to One
+This will log you in as the `postgres` user. By default, a **superuser** named `postgres` is created when PostgreSQL is installed.
 
-C - One to Many
+### Installation on Mac
 
-D - Many to Many
+To install PostgreSQL on Mac, we will be using Homebrew. Homebrew is a package manager for Mac. It is similar to `apt-get` on Ubuntu.
 
----
+Install Homebrew:
 
-Q3: Which of the following is NOT a feature of relational database?
+```sh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
 
-A - Indexes
+If you have installed Homebrew before, you can update it with:
 
-B - Stored Procedures
+```sh
+brew update && brew upgrade
+```
 
-C - Locking
+Install PostgreSQL using Homebrew:
 
-D - Storing unstructured data
+```sh
+brew install postgresql@14
+```
 
----
+Managing the PostgreSQL service:
 
-## Part 1 - Conceptual Understanding on Database
+```sh
+brew services start postgresql@14
+brew services stop postgresql@14
+brew services restart postgresql@14
+brew services status postgresql@14
+```
 
-Review the [study material](https://www.youtube.com/watch?v=OqjJjpjDRLc) (7:53) and revise on the self studies check-in questions again.
-
----
-
-## Part 2 - JPA Setup
-
-Before we are able to start using annotations and interfaces of Spring JPA, we have to setup database and import JPA dependency on Maven first.
-### Database Initialization
-
-Step 1: Use the following command to enter the PSQL session on Terminal or Bash Shell.
+Enter PostgreSQL shell:
 
 ```sh
 psql postgres
 ```
 
-Step 2: Setup the database
+This starts the PostgreSQL shell and connects to the `postgres` database. By default, no password is needed to connect to the database. For the Homebrew installation, we do not need to specify the username because it uses the current user by default.
+
+Unlike the WSL installation, the Homebrew installation does not create a superuser named `postgres`. Instead, it uses your Mac username as the default username. You can check your Mac username with:
+
+```sh
+whoami
+```
+
+### Dbeaver
+
+DBeaver is a free and open-source universal database tool for developers and database administrators. It is a GUI program that allows you to connect to a database and perform database operations easily.
+
+Download and install DBeaver from [here](https://dbeaver.io/download/).
+
+Create a new connection to PostgreSQL:
+
+<img src="https://github.com/dbeaver/dbeaver/wiki/images/ug/Wizard-select-connection.png" width=500>
+
+Configure the connection settings:
+
+<img src="https://github.com/dbeaver/dbeaver/wiki/images/database/postgresql/postgre-connection-main.png" width=500>
+
+For WSL, the username (`postgres`) and password should be the same as what you have configured during the installation of PostgreSQL. Or it can be left blank if you have set the authentication method to `trust` in the `pg_hba.conf` file (instructions below).
+
+For Mac, the default username is your Mac username and no password is needed.
+
+This can be changed in the `pg_hba.conf` file as needed.
+
+### Configuring PostgreSQL Client Authentication (Optional)
+
+To connect to PostgreSQL, you may need to configure the client authentication method. This can be done by editing the `pg_hba.conf` file.
+
+The location of the `pg_hba.conf` file depends on your system.
+
+- WSL: `/etc/postgresql/14/pg_hba.conf`
+- Homebrew (Intel): `/usr/local/var/postgres/`
+- Homebrew (Apple Silicon): `/opt/homebrew/var/postgres/pg_hba.conf`
+
+You can use the `vi` command to edit the `pg_hba.conf` file.
+
+```sh
+sudo vi /etc/postgresql/14/main/pg_hba.conf
+```
+
+The `pg_hba.conf` file contains a list of records. Each record specifies a connection type, a database name, a user name, an IP address range, and an authentication method.
+
+Depending on your system, the default authentication method might be `scram-sha-256`. This means that you need to provide a password to connect to the database. If you set the authentication method to `trust`, you don't need to provide a password to connect to the database. For more info on the `pg_hba.conf` file, you can read [here](https://www.postgresql.org/docs/current/auth-pg-hba-conf.html).
+
+```sh
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+# "local" is for Unix domain socket connections only
+local   all             all                                     trust
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            trust
+```
+
+If you have forgotten your password, you can set the authentication method to `trust`. Then you can log in to the database without a password to change it. Remember to update `pg_hba.conf` and set the authentication method back to `scram-sha-256`. Note that PostgreSQL service needs to be restarted after editing the `pg_hba.conf` file.
+
+```
+psql -U postgres
+postgres=# \password
+```
+
+You can read more about configuring the `pg_hba.conf` file [here](https://www.postgresql.org/docs/current/auth-pg-hba-conf.html).
+
+### Adding a New Database
+
+With PostgreSQL installed, we can now create a new database for our application.
+
+This can be done using DBeaver or using psql shell.
 
 ```sql
-CREATE DATABASE exampledb;
-CREATE USER exampleuser WITH ENCRYPTED PASSWORD 'password';
-GRANT ALL PRIVILEGES ON DATABASE exampledb to exampleuser;
-```
-### Database Connections
-
-Now, you have setup your database. Navigate to the [application.properties](./src/shoppingcartapi/src/main/resources/application.properties) file and add the follow configuration. 
-
-```
-## PostgreSQL
-spring.datasource.url=jdbc:postgresql://localhost:5432/exampledb
-spring.datasource.username=exampleuser
-spring.datasource.password=password
-
-#drop n create table again, good for testing, comment this in production
-spring.jpa.hibernate.ddl-auto=create
+CREATE DATABASE simple_crm;
 ```
 
-### Install JPA Dependencies
+In DBeaver, right click on "Databases" and select "Create Database". Enter the database name and click "OK".
 
-Navigate to the [pom.xml](./src/shoppingcartapi/pom.xml) and add the following dependencies within the `<dependencies>` tag.
+---
+
+## Part 2: Switching to PostgreSQL
+
+Open the `simple-crm` project.
+With JPA, we can easily switch to another database.
+
+First, we need to add the PostgreSQL dependency to our project.
 
 ```xml
 <dependency>
     <groupId>org.postgresql</groupId>
     <artifactId>postgresql</artifactId>
 </dependency>
+```
 
+You can comment out the H2 dependency for now.
+
+```xml
+<!-- <dependency>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+</dependency> -->
+```
+
+Next, we need to update the `application.properties` file.
+
+```properties
+# Comment out the H2 configuration
+# H2
+# spring.h2.console.enabled=true
+# spring.h2.console.path=/h2
+# spring.datasource.url=jdbc:h2:mem:simple-crm-h2
+
+# PostgreSQL
+spring.datasource.url=jdbc:postgresql://localhost:5432/simple_crm
+# for WSL, use postgres
+# for Mac, use your Mac username
+spring.datasource.username=postgres
+# Password can be blank if we set it to trust in pg_hba.conf
+spring.datasource.password=
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+# this will drop and create tables again
+spring.jpa.hibernate.ddl-auto=create
+# this can be used to update tables
+# spring.jpa.hibernate.ddl-auto=update
+```
+
+Start your application and test the endpoints.
+
+Check the tables in DBeaver.
+
+You can see that with JPA, we can easily switch to another database without changing our code.
+
+---
+
+## Part 3: JPA Query Creation from Method Name
+
+JPA provides a set of [methods](https://docs.spring.io/spring-data/jpa/docs/current/api/org/springframework/data/jpa/repository/JpaRepository.html) for us to perform CRUD operations. However, there may be times when we need to perform more complex queries. For example, we may want to find all customers with a certain first name.
+
+In this case, we can create a query using the method name. This is known as JPA Query Creation from Method Name.
+
+```java
+public interface CustomerRepository extends JpaRepository<Customer, Long> {
+
+    // Custom query to find all customers with a certain first name
+    List<Customer> findByFirstName(String firstName);
+}
+```
+
+In our service layer `CustomerServiceImpl`, we can call this method. Remember to add the method to the interface `CustomerService` too.
+
+```java
+@Override
+public ArrayList<Customer> searchCustomers(String firstName) {
+    List<Customer> foundCustomers = customerRepository.findByFirstName(firstName);
+    return (ArrayList<Customer>) foundCustomers;
+}
+```
+
+And in our controller, we can create a new endpoint to allow the user to search for customers by first name.
+
+```java
+@GetMapping("/search")
+public ResponseEntity<ArrayList<Customer>> searchCustomers(@RequestParam String firstName) {
+    ArrayList<Customer> foundCustomers = customerService.searchCustomers(firstName);
+    return new ResponseEntity<>(foundCustomers, HttpStatus.OK);
+}
+```
+
+Try to search for customers by first name.
+
+`http://localhost:8080/customers/search?firstName=Stephen`
+
+To search for first names starting with a certain string, we can use the `StartingWith` keyword. You can try this on your own in your free time.
+
+```java
+List<Customer> findByFirstNameStartingWith(String firstName);
+```
+
+For more information, you can read more about [JPA Query Creation from Method Name](https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods.query-creation).
+
+---
+
+## Part 4: `Optional` and Exception Handling
+
+Currently, in our `CustomerServiceImpl`, we are doing this:
+
+```java
+@Override
+public Customer getCustomer(Long id) {
+    Customer foundCustomer = customerRepository.findById(id).get();
+    return foundCustomer;
+}
+```
+
+What happens when we get a customer id that does not exist?
+
+If you look at the `findById` method in the `CustomerRepository` interface, you will see that it actually returns an `Optional`.
+
+An `Optional` is a container object that may or may not contain a non-null value. It is used to represent the presence or absence of a value.
+
+Hence, we had to use `get()` to unwrap the `Optional` and get the `Customer` object. However, this is not a good practice. If the result is `null`, we will get a `NoSuchElementException`. You can try getting an invalid id.
+
+We should check if the `Optional` contains a value before unwrapping it.
+
+```java
+@Override
+public Customer getCustomer(Long id) {
+    Optional<Customer> optionalCustomer = customerRepository.findById(id);
+    if (optionalCustomer.isPresent()) {
+        // If the Optional contains a value, unwrap it and return the Customer object
+        Customer foundCustomer = optionalCustomer.get();
+        return foundCustomer;
+    }
+
+    throw new CustomerNotFoundException(id);
+}
+```
+
+Test getting an invalid id.
+
+Currently, we are only getting a 404 error. We are not getting a proper error message, which may not be very helpful to the user.
+
+We could return the error message as a string, but our `ResponseEntity` is of type `Customer`. So we could change the type parameter of `ResponseEntity` to `Object`, which is the parent class of all classes in Java.
+
+```java
+@GetMapping("{id}")
+public ResponseEntity<Object> getCustomer(@PathVariable Long id) {
+
+    try {
+        Customer foundCustomer = customerService.getCustomer(id);
+        return new ResponseEntity<>(foundCustomer, HttpStatus.OK);
+    } catch (CustomerNotFoundException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+    }
+}
+```
+
+With this, we could return a `Customer` object if the customer is found, or a string if the customer is not found. But we lose the type safety. This means we could return any object, not just a `Customer` object.
+
+Another problem we have is that we have all these `try-catch` blocks in our controller.
+
+---
+
+## Part 5: Global Exception Handler
+
+Spring Boot lets us create a global exception handler to handle all exceptions in our application using the `@ControllerAdvice` annotation. This allows us to define a centralized place to handle exceptions thrown from all controllers in our application.
+
+<img src="https://bytesofgigabytes.com/IMAGES/spring/globalHandler/global%20exception%20handler.png" width=550 style="background-color: #fff;padding: 25px; border: 1px solid #333;border-radius: 5px">
+
+> Source: https://bytesofgigabytes.com/spring/spring-boot-global-exception-handler/
+
+Create a new class `GlobalExceptionHandler.java`.
+
+Each exception handler method can be annotated with `@ExceptionHandler` to handle a specific exception.
+
+```java
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    // This is a handler for CustomerNotFoundException
+    @ExceptionHandler(CustomerNotFoundException.class)
+    public ResponseEntity<String> handleCustomerNotFoundException(CustomerNotFoundException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+    }
+}
+```
+
+Hence we no longer need the `try-catch` block in our controller. And we also do not have to return a `ResponseEntity<Object>` and instead return our original `ResponseEntity<Customer>`, which gives us type safety.
+
+```java
+@GetMapping("{id}")
+public ResponseEntity<Customer> getCustomer(@PathVariable Long id) {
+    Customer foundCustomer = customerService.getCustomer(id);
+    return new ResponseEntity<>(foundCustomer, HttpStatus.OK);
+}
+```
+
+Now, when an exception is thrown, it will be caught by this global exception handler. The specific exception handler method will be called to handle the exception.
+
+Currently we are returning it as a string. We could give it a more proper structure by creating a new `ErrorResponse` class .
+
+```java
+@Getter
+@Setter
+@AllArgsConstructor
+public class ErrorResponse {
+  private String message;
+  private LocalDateTime timestamp;
+}
+```
+
+And update the exception handler method to return an `ErrorResponse` object.
+
+```java
+@ExceptionHandler(CustomerNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleCustomerNotFoundException(CustomerNotFoundException ex) {
+    ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), LocalDateTime.now());
+    return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+}
+```
+
+Providing a meaningful error message is useful for our frontend too as it can display the error message to the user.
+
+### General Exception Handler
+
+We can also add a general exception handler to handle all other exceptions that are not handled by the specific exception handlers. This is useful because there may be other exceptions that we have not yet handled or that we did not expect.
+
+For example, currently, we have not handled invalid interactions. Try to get an invalid interaction.
+
+We will get a `NoSuchElementException` when we try to get an interaction that does not exist.
+
+With a general exception handler, we can return a generic error message to the user.
+
+```java
+@ExceptionHandler(Exception.class)
+public ResponseEntity<ErrorResponse> handleException(Exception ex) {
+    // We can log the exception here
+    // logger.error(ex.getMessage(), ex);
+    // Return a generic error message
+    ErrorResponse errorResponse = new ErrorResponse("Something went wrong", LocalDateTime.now());
+    return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+}
+```
+
+With this in place, the user will get a generic error message when an exception is thrown and we do not have to expose too much information about our application.
+
+### `EmptyResultDataAccessException`
+
+Note that for deletion, the `deleteById` method in `CustomerRepository` does not return an `Optional`. It returns `void`. If we try to delete a customer that does not exist, we will get an `EmptyResultDataAccessException`.
+
+We can add another exception handler to handle this exception.
+
+```java
+@ExceptionHandler(EmptyResultDataAccessException.class)
+    public ResponseEntity<ErrorResponse> handleEmptyResultDataAccessException(EmptyResultDataAccessException ex) {
+    ErrorResponse errorResponse = new ErrorResponse("Item does not exist.", LocalDateTime.now());
+    return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+}
+```
+
+Try to delete any invalid customer or interaction.
+
+---
+
+## 👨‍💻 Activity
+
+Refactor the code in `CustomerServiceImpl` and `InteractionServiceImpl` to use `Optionals`. Create a new `InteractionNotFoundException` class that extends `RuntimeException`. Throw this exception when the interaction is not found.
+
+Use the Global Exception Handler to handle these exceptions.
+
+---
+
+## Part 6: Validation
+
+Try to create a new customer with an empty name and an invalid email address.
+
+We have a problem now because the user could input invalid data such as an empty name or an invalid email address.
+
+This should be handled by the frontend. But we cannot assume that it will always be handled or that it is handled correctly. Hence, we should also validate the data on the backend to prevent invalid data from being saved to the database.
+
+To do this, let's install the `spring-boot-starter-validation` dependency.
+
+```xml
 <dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-data-jpa</artifactId> 
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-validation</artifactId>
 </dependency>
 ```
 
----
-
-## Part 3 - @Entity & @Repository
-
-Step 1: Create an entity class that maps to a table in the database. Create a new file: `com.skillsunion.shoppingcartapi.entity.Catalogue.java`
+Let's add validation constraints to our `Customer` class.
 
 ```java
-package com.skillsunion.shoppingcartapi.entity;
+public class Customer {
+  // ...
 
-import java.sql.Timestamp;
+  @NotBlank(message = "First name is mandatory")
+  private String firstName;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-@Entity
-@Table(name = "catalogue", schema = "public")
-public class Catalogue {
-    
-	@Id
-    @Column(name = "id", nullable=false)
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-
-    @Column(name = "name")
-    private String name;
-
-    @Column(name = "price")
-    private Float price;
-
-    @Column(name = "short_description")
-    private String shortDesc;
-
-    @Column(name = "created_at")
-    @CreationTimestamp
-    private Timestamp createdAt;
-
-    @Column(name = "updated_at")
-    @UpdateTimestamp
-    private Timestamp updatedAt;
-
-	public Integer getId() {
-		return id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public Float getPrice() {
-		return price;
-	}
-
-	public void setPrice(Float price) {
-		this.price = price;
-	}
-
-	public String getShortDesc() {
-		return shortDesc;
-	}
-
-	public void setShortDesc(String shortDesc) {
-		this.shortDesc = shortDesc;
-	}
-
-	public Timestamp getCreatedAt() {
-		return createdAt;
-	}
-
-	public void setCreatedAt(Timestamp createdAt) {
-		this.createdAt = createdAt;
-	}
-
-	public Timestamp getUpdatedAt() {
-		return updatedAt;
-	}
-
-	public void setUpdatedAt(Timestamp updatedAt) {
-		this.updatedAt = updatedAt;
-	}
-    
-}
-
-```
-
-Step 2: Create a repository class at `com.skillsunion.shoppingcartapi.repository.CatalogueRepository.java`.
-
-```java
-package com.skillsunion.shoppingcartapi.repository;
-
-import org.springframework.stereotype.Repository;
-import org.springframework.data.jpa.repository.JpaRepository;
-import com.skillsunion.shoppingcartapi.entity.Catalogue;
-
-@Repository
-public interface CatalogueRepository extends JpaRepository <Catalogue, Integer>{
-
-
-}
-
-```
-
-Upon extends `JpaRepository`, there are a set of [default methods](https://docs.spring.io/spring-data/jpa/docs/current/api/org/springframework/data/jpa/repository/JpaRepository.html) made available. 
-
-If you require a more complex query, you could manually declare the method signature. [Reference](https://docs.spring.io/spring-data/jpa/docs/1.6.0.RELEASE/reference/html/jpa.repositories.html)
-
-Let's declare a new method to query for the `name` attribute of `Catalogue` that contains a given value.
-
-Update `CatalogueRepository.java`
-```java
-package com.skillsunion.shoppingcartapi.repository;
-
-import org.springframework.stereotype.Repository;
-import java.util.List;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.query.Param;
-import com.skillsunion.shoppingcartapi.entity.Catalogue;
-
-@Repository
-public interface CatalogueRepository extends JpaRepository <Catalogue, Integer>{
-
-	List<Catalogue> findByNameContaining(@Param("name") String name);
+  @Email(message = "Email should be valid")
+  private String email;
 
 }
 ```
 
-Now, we are able to use the declared method to search for name that contains a given value. 
+This will validate that the `firstName` is not blank and that the `email` is a valid email address.
 
-> Under the hood of @JpaRepository [link](https://stackoverflow.com/questions/14014086/what-is-difference-between-crudrepository-and-jparepository-interfaces-in-spring)
+We also need to use the `@Valid` annotation in our controller. The `@Valid` annotation tells Spring to validate the request body.
 
+```java
+@PostMapping
+public ResponseEntity<Customer> createCustomer(@Valid @RequestBody Customer customer) {
+    Customer createdCustomer = customerService.createCustomer(customer);
+    return new ResponseEntity<>(createdCustomer, HttpStatus.CREATED);
+}
+```
+
+Note that `@Valid` has to be placed before `@RequestBody`. The order matters because `@Valid` tells Spring to validate the request body. If it is placed after `@RequestBody`, Spring will not know what to validate.
+
+Test out the validation.
+
+The validation exception will get caught by our general exception handler.
+
+### `BindingResult`
+
+We can get the validation errors from the `BindingResult` object. The `BindingResult` object contains the result of the validation and any errors that may have occurred during the validation.
+
+```java
+@PostMapping("")
+public ResponseEntity<Customer> createCustomer(@Valid @RequestBody Customer customer, BindingResult bindingResult) {
+
+    if (bindingResult.hasErrors()) {
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    Customer newCustomer = customerService.createCustomer(customer);
+    return new ResponseEntity<>(newCustomer, HttpStatus.CREATED);
+}
+```
+
+### Catching Validation Exceptions
+
+Since we have a global exception handler now, we can add another exception handler to handle validation exceptions.
+
+```java
+// VALIDATION EXCEPTION HANDLER
+@ExceptionHandler(MethodArgumentNotValidException.class)
+public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
+
+    // Get a list of all validation errors from the exception object
+    List<ObjectError> validationErrors = ex.getBindingResult().getAllErrors();
+
+    // Create a StringBuilder to store all error messages
+    StringBuilder sb = new StringBuilder();
+
+    // Loop through all errors and append error messages to StringBuilder
+    for (ObjectError error : validationErrors) {
+        sb.append(error.getDefaultMessage() + ". ");
+    }
+
+    ErrorResponse errorResponse = new ErrorResponse(sb.toString(), LocalDateTime.now());
+    return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+}
+```
+
+Sidenote: `StringBuilder` is a mutable sequence of characters. It is more efficient than `String` when we need to append strings. You can read more about `String` vs `StringBuilder` [here](https://medium.com/@AlexanderObregon/understanding-string-vs-stringbuilder-in-java-50448cbbf253).
+
+Test out the validation.
 
 ---
 
-## Part 4 - Invoke repository from @RestController class
+## 👨‍💻 Activity
 
-Let's implement the querying code of `CatalogueRepository.java` in `CatalogueController.java`.
+Using annotations, add validation constraints for the folowing:
 
-```java
-package com.skillsunion.shoppingcartapi.controller;
+- Customer `yearOfBirth` should be between 1940 and 2005 (you'll have to update the dataloader and constructor for this)
+- Customer `contactNo` should be 8 characters long (no need to check if it is a valid phone number)
+- Interaction `remarks` should be at least 3 characters long and at most 30 characters long
+- Interaction date should be in the past
 
-import java.util.List;
-import java.util.Optional;
+Validation annotations references:
+https://education.launchcode.org/java-web-development/chapters/spring-model-validation/validation-annotations.html
+https://cheatsheetseries.owasp.org/cheatsheets/Bean_Validation_Cheat_Sheet.html
 
-import org.apache.catalina.connector.Response;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+## Part 7: Install PostgreSQL Using Docker (Optional)
 
-import com.skillsunion.shoppingcartapi.entity.Catalogue;
-import com.skillsunion.shoppingcartapi.repository.CatalogueRepository;
+You can also install PostgreSQL using Docker. You can try this on your own in your free time.
 
-@RestController
-public class CatalogueController {
-	
-	@Autowired CatalogueRepository repo; // Added
-    
-	// Updated (produces = MediaType.APPLICATION_JSON_VALUE)
-    @RequestMapping(value="/catalogues", method = RequestMethod.GET ,consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public @ResponseBody ResponseEntity<List<Catalogue>> list(@RequestParam(defaultValue = "") String search){
-        List<Catalogue> results = repo.findByNameContaining(search);
-        System.out.println("Results Size: "+results.size());
-        if(results.size() == 0) {
-        	return ResponseEntity.notFound().build();
-        }else {
-        	return ResponseEntity.ok(results);
-        }
-    }
+Docker is a containerization platform that allows you to run applications in a container. It is similar to a virtual machine but it is more lightweight and faster. You can read more about Docker [here](https://www.docker.com/resources/what-container). Docker will be covered in more details in the DevOps module.
 
-    /*
-        Switch between @PathVariable and @RequestParam to help learners understand
-        the difference.
+If you don't have Docker installed, you can install it from [here](https://docs.docker.com/get-docker/).
 
-        @PathVariable => /catalogues/1
-        @RequestParam => /catalogues?id=1
-    */
-    @GetMapping(value = "/catalogues/{id}")
-    public ResponseEntity<Optional<Catalogue>> get(@PathVariable int id){
-        Optional<Catalogue> result = (Optional<Catalogue>) repo.findById(id);
-        if(result.isPresent()) return ResponseEntity.ok(result);
-        
-        return ResponseEntity.notFound().build();
-    }
+If you have Docker installed, you can install PostgreSQL using Docker.
 
-    /*
-        By default, a @PostMapping assumes application/json content type.
-    */
-    @PostMapping(value = "/catalogues")
-    public ResponseEntity<Catalogue> create(@RequestBody RequestBodyTempData data){
-        Catalogue newRecord = new Catalogue();
-        newRecord.setName(data.getName());
-        newRecord.setPrice(data.getPrice());
-        
-        try {
-        	Catalogue created = repo.save(newRecord);
-            return ResponseEntity.created(null).body(created);
-        }catch(Exception e) {
-        	System.out.println(e);
-        	return ResponseEntity.internalServerError().build();
-        }
-        
-    }
-}
-
-/*
-    This is a private class, not accessible outside this java file.
-    We will use this for now. In the future, the request body
-*/
-class RequestBodyTempData {
-    String name;
-    float price;
-
-    public String getName() {
-        return this.name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public float getPrice() {
-        return this.price;
-    }
-
-    public void setPrice(float price) {
-        this.price = price;
-    }
-}
-```
-
-Let's break down what has been added:
-
-- The `@Autowired` annotation is used to inject `CatalogueRepository`.
-- The `list` method has been updated to produce JSON data.
-- There are implementations of all three methods:
-    - list
-    - get
-    - create
-
-> Note that all return type are being changed to use ResponseEntity [API Doc](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/ResponseEntity.html)
-
-> Static methods are being used for the lesson.
-
-Run the application with:
 ```sh
-./mvnw spring-boot:run
+docker run --name mypostgres -e POSTGRES_PASSWORD=password -d -p 5433:5432 postgres
 ```
 
-You should be able to successfully call the following APIs following the order: 1, 2, 3 and 4.
+The command above will pull the latest PostgreSQL image from Docker Hub and run it in a container. The container will be named `mypostgres` and the password for the default user `postgres` will be `password`. The container will be running on port `5433`.
 
-|Order|URL|Verb|Body|Remarks|
-|-----|---|----|----|-------|
-|1|http://localhost:8080/catalogues|POST|`{"name":"sofa","price":1000}`| Create data|
-|2|http://localhost:8080/catalogues|POST|`{"name":"candy","price":1000}`| Create data|
-|3|http://localhost:8080/catalogues/1|GET|N/A| Read data by ID|
-|4|http://localhost:8080/catalogues?search=of|GET|N/A| Find data where name contains "of"|
+You can check if the container is running with:
 
+```sh
+docker ps
+```
+
+You can stop the container with:
+
+```sh
+docker stop mypostgres
+```
+
+You can start the container with:
+
+```sh
+docker start mypostgres
+```
+
+You can remove the container with:
+
+```sh
+docker rm mypostgres
+```
+
+---
+
+END

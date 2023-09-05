@@ -546,8 +546,6 @@ Sidenote: `StringBuilder` is a mutable sequence of characters. It is more effici
 
 Test out the validation.
 
----
-
 ## 👨‍💻 Activity
 
 Using annotations, add validation constraints for the folowing:
@@ -555,11 +553,14 @@ Using annotations, add validation constraints for the folowing:
 - Customer `yearOfBirth` should be between 1940 and 2005 (you'll have to update the dataloader and constructor for this)
 - Customer `contactNo` should be 8 characters long (no need to check if it is a valid phone number)
 - Interaction `remarks` should be at least 3 characters long and at most 30 characters long
-- Interaction date should be in the past
+- `interactionDate` should not be in the future
 
 Validation annotations references:
-https://education.launchcode.org/java-web-development/chapters/spring-model-validation/validation-annotations.html
-https://cheatsheetseries.owasp.org/cheatsheets/Bean_Validation_Cheat_Sheet.html
+
+- https://education.launchcode.org/java-web-development/chapters/spring-model-validation/validation-annotations.html
+- https://cheatsheetseries.owasp.org/cheatsheets/Bean_Validation_Cheat_Sheet.html
+
+---
 
 ## Part 7: Install PostgreSQL Using Docker (Optional)
 

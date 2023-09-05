@@ -1,5 +1,7 @@
 This lesson is the 2nd part of JPA, where we switch from H2 to PostgreSQL and make our application more robust with exception handling and validation.
 
+---
+
 ## Part 1: PostgreSQL
 
 PostgreSQL is a relational database management system (RDBMS). It is open source and free. It is also known as Postgres and it is popular for its reliability, robustness, and performance.
@@ -69,7 +71,7 @@ Managing the PostgreSQL service:
 brew services start postgresql@14
 brew services stop postgresql@14
 brew services restart postgresql@14
-brew services status postgresql@14
+brew services info postgresql@14
 ```
 
 Enter PostgreSQL shell:
@@ -112,11 +114,11 @@ To connect to PostgreSQL, you may need to configure the client authentication me
 
 The location of the `pg_hba.conf` file depends on your system.
 
-- WSL: `/etc/postgresql/14/pg_hba.conf`
+- WSL: `/etc/postgresql/14/main/pg_hba.conf`
 - Homebrew (Intel): `/usr/local/var/postgres/`
-- Homebrew (Apple Silicon): `/opt/homebrew/var/postgres/pg_hba.conf`
+- Homebrew (Apple Silicon): `/opt/homebrew/var/postgresql@14/pg_hba.conf`
 
-You can use the `vi` command to edit the `pg_hba.conf` file.
+You can use the `vi` or `nano` command to edit the `pg_hba.conf` file.
 
 ```sh
 sudo vi /etc/postgresql/14/main/pg_hba.conf
@@ -298,6 +300,19 @@ public Customer getCustomer(Long id) {
 
 Test getting an invalid id.
 
+This can also be further simplified with `orElseThrow()`.
+
+The method `customerRepository.findById(id)` will return an `Optional<Customer>`. `Optional` has a method `orElseThrow()` that will return the value if it is present, or throw an exception if it is not present. We can then use a lambda expression to throw a `CustomerNotFoundException` if the value is not present.
+
+```java
+@Override
+public Customer getCustomer(Long id) {
+    return customerRepository.findById(id).orElseThrow(() -> new CustomerNotFoundException(id));
+}
+```
+
+You can use whichever method you think is more readable.
+
 Currently, we are only getting a 404 error. We are not getting a proper error message, which may not be very helpful to the user.
 
 We could return the error message as a string, but our `ResponseEntity` is of type `Customer`. So we could change the type parameter of `ResponseEntity` to `Object`, which is the parent class of all classes in Java.
@@ -317,7 +332,7 @@ public ResponseEntity<Object> getCustomer(@PathVariable Long id) {
 
 With this, we could return a `Customer` object if the customer is found, or a string if the customer is not found. But we lose the type safety. This means we could return any object, not just a `Customer` object.
 
-Another problem we have is that we have all these `try-catch` blocks in our controller.
+Another problem we have now is that we have all these `try-catch` blocks in our controller.
 
 ---
 
@@ -344,8 +359,8 @@ public class GlobalExceptionHandler {
 
     // This is a handler for CustomerNotFoundException
     @ExceptionHandler(CustomerNotFoundException.class)
-    public ResponseEntity<String> handleCustomerNotFoundException(CustomerNotFoundException e) {
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+    public ResponseEntity<String> handleCustomerNotFoundException(CustomerNotFoundException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 }
 ```
@@ -407,6 +422,8 @@ public ResponseEntity<ErrorResponse> handleException(Exception ex) {
 }
 ```
 
+Try to get an invalid interaction again.
+
 With this in place, the user will get a generic error message when an exception is thrown and we do not have to expose too much information about our application.
 
 ### `EmptyResultDataAccessException`
@@ -425,9 +442,7 @@ We can add another exception handler to handle this exception.
 
 Try to delete any invalid customer or interaction.
 
----
-
-## 👨‍💻 Activity
+### 👨‍💻 Activity
 
 Refactor the code in `CustomerServiceImpl` and `InteractionServiceImpl` to use `Optionals`. Create a new `InteractionNotFoundException` class that extends `RuntimeException`. Throw this exception when the interaction is not found.
 
@@ -504,7 +519,7 @@ public ResponseEntity<Customer> createCustomer(@Valid @RequestBody Customer cust
 
 ### Catching Validation Exceptions
 
-Since we have a global exception handler now, we can add another exception handler to handle validation exceptions.
+Since we have a global exception handler now, we can add another exception handler to handle validation exceptions. Remember to remove the `BindingResult` parameter from the controller method first.
 
 ```java
 // VALIDATION EXCEPTION HANDLER

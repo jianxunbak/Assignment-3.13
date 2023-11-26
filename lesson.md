@@ -258,7 +258,7 @@ To search for first names starting with a certain string, we can use the `Starti
 List<Customer> findByFirstNameStartingWith(String firstName);
 ```
 
-For more information, you can read more about [JPA Query Creation from Method Name](https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods.query-creation).
+For more information, you can read more about [JPA Derived Query from Method Name](https://www.baeldung.com/spring-data-derived-queries).
 
 ---
 

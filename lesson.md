@@ -426,27 +426,37 @@ Try to get an invalid interaction again.
 
 With this in place, the user will get a generic error message when an exception is thrown and we do not have to expose too much information about our application.
 
-### `EmptyResultDataAccessException`
-
-Note that for deletion, the `deleteById` method in `CustomerRepository` does not return an `Optional`. It returns `void`. If we try to delete a customer that does not exist, we will get an `EmptyResultDataAccessException`.
-
 We can add another exception handler to handle this exception.
-
-```java
-@ExceptionHandler(EmptyResultDataAccessException.class)
-    public ResponseEntity<ErrorResponse> handleEmptyResultDataAccessException(EmptyResultDataAccessException ex) {
-    ErrorResponse errorResponse = new ErrorResponse("Item does not exist.", LocalDateTime.now());
-    return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
-}
-```
-
-Try to delete any invalid customer or interaction.
 
 ### 👨‍💻 Activity
 
 Refactor the code in `CustomerServiceImpl` and `InteractionServiceImpl` to use `Optionals`. Create a new `InteractionNotFoundException` class that extends `RuntimeException`. Throw this exception when the interaction is not found.
 
 Use the Global Exception Handler to handle these exceptions.
+
+### Handling more than one exception
+
+You may have noticed that the handler method for both `CustomerNotFoundException` and `InteractionNotFoundException` is almost identical. How can we refactor it then?
+
+In the `@ExceptionHandler` annotation, we can use a array notation to define a array of exception class to handle. For the method, we will need to define a parameter of common type between the exception classes. In this case, `CustomerNotFoundException` and `InteractionNotFoundException` are both `RuntimeException`.
+
+By changing the `handleCustomerNotFoundException` method as shown below, we can further refactor the codes by minimising the number of handlers method we need.
+
+```java
+// rename handleCustomerNotFoundException -> handleResourceNotFoundException
+@ExceptionHandler({CustomerNotFoundException.class, InteractionNotFoundException.class})
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(RuntimeException ex) {
+    ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), LocalDateTime.now());
+    return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+}
+
+// @ExceptionHandler(InteractionNotFoundException.class)
+//    public ResponseEntity<ErrorResponse> handleInteractionNotFoundException(InteractionException ex) {
+//    ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), LocalDateTime.now());
+//    return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+//}
+
+```
 
 ---
 

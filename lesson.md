@@ -96,11 +96,11 @@ Download and install DBeaver from [here](https://dbeaver.io/download/).
 
 Create a new connection to PostgreSQL:
 
-<img src="https://github.com/dbeaver/dbeaver/wiki/images/ug/Wizard-select-connection.png" width=500>
+<img src="https://github.com/su-ntu-ctp/6m-software-3.13-spring-jpa/blob/main/assets/Postgres%20New%20Connection.png" width=500>
 
 Configure the connection settings:
 
-<img src="https://github.com/dbeaver/dbeaver/wiki/images/database/postgresql/postgre-connection-main.png" width=500>
+<img src="https://github.com/su-ntu-ctp/6m-software-3.13-spring-jpa/blob/main/assets/Connection%20Settings.png" width=500>
 
 For WSL, the username (`postgres`) and password should be the same as what you have configured during the installation of PostgreSQL. Or it can be left blank if you have set the authentication method to `trust` in the `pg_hba.conf` file (instructions below).
 

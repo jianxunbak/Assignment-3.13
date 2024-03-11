@@ -567,6 +567,7 @@ Using annotations, add validation constraints for the folowing:
 
 Validation annotations references:
 
+- https://www.baeldung.com/java-validation
 - https://education.launchcode.org/java-web-development/chapters/spring-model-validation/validation-annotations.html
 - https://cheatsheetseries.owasp.org/cheatsheets/Bean_Validation_Cheat_Sheet.html
 

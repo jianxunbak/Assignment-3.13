@@ -340,9 +340,9 @@ Another problem we have now is that we have all these `try-catch` blocks in our 
 
 Spring Boot lets us create a global exception handler to handle all exceptions in our application using the `@ControllerAdvice` annotation. This allows us to define a centralized place to handle exceptions thrown from all controllers in our application.
 
-<img src="https://bytesofgigabytes.com/IMAGES/spring/globalHandler/global%20exception%20handler.png" width=550 style="background-color: #fff;padding: 25px; border: 1px solid #333;border-radius: 5px">
+<img src="https://miro.medium.com/v2/resize:fit:1100/format:webp/1*Rr3r5KfKYc6fVJfTZF-rHA.png" width=550 style="background-color: #fff;padding: 25px; border: 1px solid #333;border-radius: 5px">
 
-> Source: https://bytesofgigabytes.com/spring/spring-boot-global-exception-handler/
+> Source: https://medium.com/@praneshgupta/springboot-exception-handling-in-apis-globalexceptionhandler-c549470f7834
 
 Create a new class `GlobalExceptionHandler.java`.
 

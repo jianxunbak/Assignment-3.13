@@ -62,16 +62,16 @@ brew update && brew upgrade
 Install PostgreSQL using Homebrew:
 
 ```sh
-brew install postgresql@14
+brew install postgresql@16
 ```
 
 Managing the PostgreSQL service:
 
 ```sh
-brew services start postgresql@14
-brew services stop postgresql@14
-brew services restart postgresql@14
-brew services info postgresql@14
+brew services start postgresql@16
+brew services stop postgresql@16
+brew services restart postgresql@16
+brew services info postgresql@16
 ```
 
 Enter PostgreSQL shell:
@@ -114,14 +114,14 @@ To connect to PostgreSQL, you may need to configure the client authentication me
 
 The location of the `pg_hba.conf` file depends on your system.
 
-- WSL: `/etc/postgresql/14/main/pg_hba.conf`
+- WSL: `/etc/postgresql/16/main/pg_hba.conf`
 - Homebrew (Intel): `/usr/local/var/postgres/`
-- Homebrew (Apple Silicon): `/opt/homebrew/var/postgresql@14/pg_hba.conf`
+- Homebrew (Apple Silicon): `/opt/homebrew/var/postgresql@16/pg_hba.conf`
 
 You can use the `vi` or `nano` command to edit the `pg_hba.conf` file.
 
 ```sh
-sudo vi /etc/postgresql/14/main/pg_hba.conf
+sudo nano /etc/postgresql/16/main/pg_hba.conf
 ```
 
 The `pg_hba.conf` file contains a list of records. Each record specifies a connection type, a database name, a user name, an IP address range, and an authentication method.
